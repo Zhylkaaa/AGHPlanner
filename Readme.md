@@ -1,17 +1,19 @@
 # AGHPlanner 
 
-is a tool to prowide easy and convenient way to to manage reservation of class rooms and solve not trivial task of assigning classes to rooms. We decided to devide the tool to two independent services: [Reservation Service](#reservation-service) and [Planner Service](#planner-service)
+AGHPlanner is a tool that provides an easy and convenient way to manage the reservation of classrooms at AGH University. It also solves the nontrivial task of assigning rooms for lecture and lab groups without causing conflict for students and teachers.
+
+We decided to divide the tool into two independent services: the [Reservation Service](#reservation-service) and the [Planner Service](#planner-service)
 
 ## Reservation Service
 
-implements simple calendar view to show already reserved and free time gaps for each class room available in building.
-(oprionaly) implements functionality to search for free class rooms at given day and/or time/time gap(like month)
+The reservation service is a web app that displays reserved and free time slots for each classroom in the building on a simple calendar.
+(optional) It implements functionality for searching for classrooms that are free within certain times of day within a given date range.
 
-- authorized users with low reservation access (LA) can request for class room (for 1 time use or for time gap) to be approved/declined by admins (declination should probably contain option to provide reason, which looks like [this](https://www.reddit.com/r/MurderedByWords/comments/ajioa3/that_time_governor_arnold_schwarzenegger_sent_a/) commonly)
+- authorized users with low reservation access (LA) can request reservations for a classroom (for one use or periodically, e.g. every two weeks) that are approved/denied by admins. (Denying a pending reservation should optionally provide a reason, which is displayed to the user and probably looks something like [this](https://www.reddit.com/r/MurderedByWords/comments/ajioa3/that_time_governor_arnold_schwarzenegger_sent_a/))
 
-- authorized users with high reservation access (HA) can reserve class rooms right away (TODO: how to deal with cases where HA user reserves requested by LA user. I propose showing allert to HA user)
+- authorized users with high reservation access (HA) can make reservations without entering the verification queue. (TODO: how to deal with cases where a HA user's reservation conflicts with an LA user's request. I propose showing an alert to the HA user. {I propose sending a notification to the LA user as well. -- Mateusz})
 
-- admins have panel with requests and can upload schedule to be displayed.
+- admins have access to an administrative panel with pending requests and can upload the base schedule to be displayed.
 
 ## Planner Service
 
