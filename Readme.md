@@ -9,7 +9,7 @@ implements simple calendar view to show already reserved and free time gaps for 
 
 - authorized users with low reservation access (LA) can request for class room (for 1 time use or for time gap) to be approved/declined by admins (declination should probably contain option to provide reason, which looks like [this](https://www.reddit.com/r/MurderedByWords/comments/ajioa3/that_time_governor_arnold_schwarzenegger_sent_a/) commonly)
 
-- authorized users with high reservation access (HA) can reserve class rooms right away (TODO: how to deal with cases where HA user reserves requested by LA user. I propose to showing allert to HA user)
+- authorized users with high reservation access (HA) can reserve class rooms right away (TODO: how to deal with cases where HA user reserves requested by LA user. I propose showing allert to HA user)
 
 - admins have panel with requests and can upload schedule to be displayed.
 
