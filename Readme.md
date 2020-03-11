@@ -17,4 +17,21 @@ The reservation service is a web app that displays reserved and free time slots 
 
 ## Planner Service
 
-####TODO
+simple service that allows to:
+
+- upload data containing information about classes, time slots and classrooms. Example:
+
+```python
+{
+	'classes': [class(name="ASD", type=W, is_AB = False, lecturer="Faliszewski"), 
+		class(name="Algebra", type=C, is_AB=False, lecturer="Przybyło"), 
+		class(name="Python", type=L, is_AB=True, lecturer="Kaleta")]
+	'classrooms': [room(name='1.38', type=W), room(name='3.22', type=C), room(name='3.27d', type=L&C)]
+	'timeslots': [slot(8:00, 9:30), slot(9:35, 11:05), slot(11:15, 12:45), slot(12:50, 14:20)]
+}
+```
+
+- than assign each class to classroom using blackbox function inside the service (probably some kind of SAT solver?) and show results using some kind of calendar view or indicate that it's impossible to do so
+
+- download results as csv
+
