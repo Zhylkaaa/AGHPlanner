@@ -34,4 +34,3 @@ simple service that allows to:
 - than assign each class to classroom using blackbox function inside the service (probably some kind of SAT solver?) and show results using some kind of calendar view or indicate that it's impossible to do so
 
 - download results as csv
-

@@ -1,0 +1,18 @@
+<form method="POST"> {% csrf_token %}
+{{ form.as_p }}
+<input type='submit' value='Search'>
+</form>
+<h1>
+    Already booked terms: <br>
+</h1>
+{% if all_booked_slots %}
+
+    {% for booked_slot in all_booked_slots %}
+        {{ booked_slot }}<br>
+    {% endfor %}
+{% else  %}
+    There is no class with this number or it's not occupied. Available class numbers: <br>
+     {% for class_number in available_class %}
+        {{ class_number }}<br>
+    {% endfor %}
+{% endif %}
