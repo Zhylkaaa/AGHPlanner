@@ -75,23 +75,21 @@ def upload_csv(request):
 
     columns = classes_df.columns
 
+    redirect_year, redirect_semester = None, None
+
     for row in classes_df.itertuples(index=False):
         data = dict(zip(columns, row))
         if not use_time_end:
             data['time_end'] = str((datetime.strptime(data['time_start'], '%H:%M:%S') + timedelta(hours=1, minutes=30)).time())
 
+        redirect_year = data['academic_year']
+        redirect_semester = data['semester']
+
         ClassroomReservation.objects.get_or_create(**data)
 
-    current_year = datetime.now().year
-    semester = 'winter'
+    redirect_year = redirect_year.replace('/', '_')
 
-    if current_year % 2 == 0:
-        current_year -= 1
-        semester = 'summer'
-
-    current_year = str(current_year) + '_' + str(current_year + 1)
-
-    return HttpResponseRedirect(reverse('ReservationService:calendar_view', args=(current_year, semester, )))
+    return HttpResponseRedirect(reverse('ReservationService:calendar_view', args=(redirect_year, redirect_semester, )))
 
 
 def calendar(request, academic_year, semester):
