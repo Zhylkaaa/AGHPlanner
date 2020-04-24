@@ -80,7 +80,7 @@ def upload_csv(request):
         if not use_time_end:
             data['time_end'] = str((datetime.strptime(data['time_start'], '%H:%M:%S') + timedelta(hours=1, minutes=30)).time())
 
-        ClassroomReservation.objects.create(**data)
+        ClassroomReservation.objects.get_or_create(**data)
 
     current_year = datetime.now().year
     semester = 'winter'
