@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home</title>
+</head>
+<body>
+    <h1> Calendar</h1>
+    {% for year, semesters in available_semesters %}
+        {{ year}}
+        <ul>
+        {% for semester in semesters %}
+            <li><a href="{% url 'ReservationService:calendar_view' year semester %}"> {{ semester }}</a> </li>
+        {% endfor %}
+        </ul>
+    {% endfor %}
+</body>
+</html>
