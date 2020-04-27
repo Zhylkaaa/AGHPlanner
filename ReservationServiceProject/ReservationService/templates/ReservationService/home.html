@@ -1,0 +1,26 @@
+{% extends 'ReservationService/base.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+    {% if not user.is_authenticated %}
+        <h2> <a href="{% url 'ReservationService:login' %}"> Sign in </a></h2>
+    {% else %}
+        Hi {{ user.get_username }}.
+        <h2><a href="{% url 'ReservationService:logout' %}"> Logout </a> </h2>
+    {% endif %}
+    <br>
+    <h1> Calendar</h1>
+    {% for year, semesters in available_semesters %}
+        {{ year}}
+        <ul>
+        {% for semester in semesters %}
+            <li><a href="{% url 'ReservationService:calendar_view' year semester %}"> {{ semester }}</a> </li>
+        {% endfor %}
+        </ul>
+    {% endfor %}
+    {% if user.is_authenticated and user.is_staff%}
+    <h1> <a href="{% url 'ReservationService:upload_csv' %}"> Upload Data </a> </h1>
+    {% endif %}
+
+{% endblock %}

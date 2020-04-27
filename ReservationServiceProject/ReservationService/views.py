@@ -12,6 +12,20 @@ import pandas as pd
 
 
 # Create your views here.
+def home(request):
+    available_semesters = list(ClassroomReservation.objects.values_list('academic_year', 'semester').distinct()[1:])
+    available_semesters.sort(key=lambda x: x[0]+x[1], reverse=True)
+    tmp = []
+    for year, semester in available_semesters:
+        if len(tmp) != 0 and tmp[-1][0] == year:
+            tmp[-1][1].append(semester)
+        else:
+            tmp.append((year, [semester]))
+    tmp = [(x.replace('/', '_'), y) for x, y in tmp]
+
+    return render(request, "ReservationService/home.html", {'available_semesters': tmp})
+
+
 def booked_slots(request):
     form = OccupiedSlotsForm(request.POST or None)
     class_name = None
