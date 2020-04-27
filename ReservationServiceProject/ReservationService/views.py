@@ -13,10 +13,6 @@ import pandas as pd
 
 # Create your views here.
 def home(request):
-    # print(list(ClassroomReservation.objects.values_list('academic_year', flat=True).distinct())[1:])
-    # available_years = list(ClassroomReservation.objects.values_list('academic_year', flat=True).distinct())[1:]
-    # print(available_years)
-    print(list(ClassroomReservation.objects.values_list('academic_year', 'semester').distinct()[1:]))
     available_semesters = list(ClassroomReservation.objects.values_list('academic_year', 'semester').distinct()[1:])
     available_semesters.sort(key=lambda x: x[0]+x[1], reverse=True)
     tmp = []
@@ -26,11 +22,7 @@ def home(request):
         else:
             tmp.append((year, [semester]))
     tmp = [(x.replace('/', '_'), y) for x, y in tmp]
-    print(tmp)
-    # for year in available_years:
-    #     available_semesters += (year, )
-    # available_semesters = [(year, x) for year in available_years]
-    # print(available_semesters)
+
     return render(request, "ReservationService/home.html", {'available_semesters': tmp})
 
 

@@ -1,12 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Calendar</title>
-</head>
-<body>
+{% extends 'ReservationService/base.html' %}
+
+{% block title %}Calendar{% endblock %}
+
+{% block content %}
     {% for reservation in reservation_list %}
         <p>{{ reservation }}</p>
     {% endfor %}
-</body>
-</html>
+{% endblock %}

@@ -1,11 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Upload</title>
-</head>
-<body>
+{% extends 'ReservationService/base.html' %}
 
+{% block title %}Upload{% endblock %}
+{% block content %}
     <p>{{ message }}</p>
 
     {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
@@ -16,5 +12,4 @@
         <input type="file" accept="text/csv" name="file"><br>
         <button type="submit">Submit</button>
     </form>
-</body>
-</html>
+{% endblock %}
