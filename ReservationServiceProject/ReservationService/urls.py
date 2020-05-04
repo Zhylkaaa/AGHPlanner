@@ -10,8 +10,9 @@ urlpatterns = [
     path('', views.home),
     path('home/', views.home, name='home'),
     path('booked/', views.booked_slots, name='index'),
-    path('book/', views.book_slot, name='book_slot'),
     path('upload/', views.upload_csv, name='upload_csv'),
+    path('profile/', views.profile_view, name='profile'),
     path('accounts/', include('django.contrib.auth.urls')),
+    path('reservation/', views.reservation, name='reservation'),
     re_path(f'calendar/{re_academic_year}/{re_semesters}/', views.calendar, name='calendar_view'),
 ]

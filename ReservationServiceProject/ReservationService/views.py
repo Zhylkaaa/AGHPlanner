@@ -1,29 +1,66 @@
 from datetime import datetime
 from datetime import timedelta
 
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.models import Group
 from django.urls import reverse
 
-from .models import ClassroomReservation
-from .forms import OccupiedSlotsForm
+from .models import ClassroomReservation, ClassName
+from .forms import OccupiedSlotsForm, ReservationForm
 import pandas as pd
 
 
 # Create your views here.
 def home(request):
-    available_semesters = list(ClassroomReservation.objects.values_list('academic_year', 'semester').distinct()[1:])
+    available_semesters = list(ClassroomReservation.objects.values_list('academic_year', 'semester').distinct())
     available_semesters.sort(key=lambda x: x[0]+x[1], reverse=True)
     tmp = []
+
     for year, semester in available_semesters:
         if len(tmp) != 0 and tmp[-1][0] == year:
             tmp[-1][1].append(semester)
         else:
             tmp.append((year, [semester]))
     tmp = [(x.replace('/', '_'), y) for x, y in tmp]
-
     return render(request, "ReservationService/home.html", {'available_semesters': tmp})
+
+
+@login_required
+def profile_view(request):
+    return render(request, "registration/profile.html", {})
+
+
+def get_unavailable_classes(form_request: dict):
+    form_request.pop('csrfmiddlewaretoken')
+    print(form_request)
+    form_request = {key: val for key, val in form_request.items() if val}
+    start_of_booking = form_request.pop('start_of_booking')
+    end_of_booking = form_request.pop('end_of_booking')
+    print(ClassroomReservation.objects.filter(**form_request))
+    cos = ClassroomReservation.objects.filter(**form_request, time_start__qt=start_of_booking, time_end__lt=end_of_booking)
+    cos = cos.values_list('class_name', flat=True).distinct()
+    return cos
+
+
+def get_available_classes(form_request: dict):
+    # get_unavailable_classes(form_request)
+    return ClassName.objects.exclude(id__in=list(get_unavailable_classes(form_request)))
+
+
+@login_required
+def reservation(request):
+    available_classes = ()
+    form = ReservationForm(request.POST or None)
+    if form.is_valid():
+        class_name = request.POST['class_name']
+        form = ReservationForm()
+        available_classes = get_available_classes(request.POST.dict())
+
+    context = {'form': form, 'available_class': available_classes}
+    return render(request, "ReservationService/reservation.html", context)
 
 
 def booked_slots(request):
@@ -47,11 +84,6 @@ def booked_slots(request):
     return render(request, "ReservationService/booked_slots.html", context)
 
 
-def book_slot(request):
-    print(Group.objects.get(name='LA') in request.user.groups.all())
-    return HttpResponse('U can book a slot here')
-
-
 def _validate_and_choose_columns(classes_df):
     # dangerous method: ClassroomReservation._meta.get_fields()
     required_columns = ['class_name', 'reserved_from', 'reserved_until', 'time_start',
@@ -64,6 +96,7 @@ def _validate_and_choose_columns(classes_df):
     return True, 'time_end' in required_columns
 
 
+@staff_member_required
 def upload_csv(request):
     template = 'ReservationService/upload_csv.html'
 
@@ -98,7 +131,7 @@ def upload_csv(request):
 
         redirect_year = data['academic_year']
         redirect_semester = data['semester']
-
+        data['class_name'] = ClassName.objects.get(class_name=data['class_name'])
         ClassroomReservation.objects.get_or_create(**data)
 
     redirect_year = redirect_year.replace('/', '_')
