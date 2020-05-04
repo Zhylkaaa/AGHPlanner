@@ -1,0 +1,8 @@
+{% extends 'ReservationService/base.html' %}
+{% block title %} Profile {% endblock %}
+
+{% block content %}
+Hi {{ user.get_username }}
+    <h2><a href="{% url 'ReservationService:home' %}"> Home </a></h2>
+    <h2><a href="{% url 'ReservationService:logout' %}"> Logout </a> </h2>
+{% endblock %}

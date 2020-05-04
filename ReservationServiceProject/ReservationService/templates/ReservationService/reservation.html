@@ -1,0 +1,17 @@
+{% extends 'ReservationService/base.html' %}
+
+{% block title %} Reservation {% endblock %}
+{% block content %}
+    <h2>You can reserve term here</h2>
+    <form method="POST">
+        {% csrf_token %}
+    {{ form.as_p }}
+    <input type='submit' value='Search'>
+    </form>
+    <br>
+    Available class: <br>
+    {% for class in available_class %}
+            {{ class }} <br>
+    {% endfor %}
+
+{% endblock %}
