@@ -8,18 +8,19 @@ class SemesterOptions(models.TextChoices):
     summer = 'summer', 'summer'
 
 
-class ClassName(models.Model):
-    class ClassTypes(models.TextChoices):
-        lecture = 'lecture', 'lecture hall'
-        computers = 'computers', 'classroom with computers'
-        board = 'board', 'normal class with board only'
+class ClassTypes(models.TextChoices):
+    lecture = 'lecture', 'lecture hall'
+    computers = 'computers', 'classroom with computers'
+    board = 'board', 'normal class with board only'
 
-    class_name = models.CharField(max_length=10)
+
+class ClassName(models.Model):
+    class_name = models.CharField(max_length=10, unique=True)
     class_size = models.IntegerField(default=30)
     class_type = models.CharField(choices=ClassTypes.choices, default='board', max_length=10)
 
     def __str__(self):
-        return self.class_name.__str__()
+        return self.class_name.__str__() + " seats: " + self.class_size.__str__()
 
 
 class ClassroomReservation(models.Model):
@@ -63,3 +64,21 @@ class ClassroomReservation(models.Model):
             )
         ]
 
+
+class ClassroomReservationAttempts(models.Model):
+    class_name = models.ForeignKey(ClassName, on_delete=models.CASCADE)
+    reservation_date = models.DateField('Reservation date', auto_now=True)
+    time_start = models.TimeField('time class start (for now assuming that class duration is 1.5h)',
+                                  auto_now=False,
+                                  auto_now_add=False)
+
+    time_end = models.TimeField('time class ends',
+                                auto_now=False,
+                                auto_now_add=False)
+    reserved_by = models.CharField(max_length=50, blank=True)
+    academic_year = models.CharField(max_length=9)
+    semester = models.CharField(max_length=6, choices=SemesterOptions.choices)
+
+    def __str__(self):
+        return self.class_name.class_name + ' at ' + self.reservation_date.__str__() + ' ' + self.time_start.__str__() +\
+               ' - ' + self.time_end.__str__() + ' reserved by ' + self.reserved_by.__str__()

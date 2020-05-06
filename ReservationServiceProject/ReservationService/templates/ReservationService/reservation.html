@@ -3,15 +3,20 @@
 {% block title %} Reservation {% endblock %}
 {% block content %}
     <h2>You can reserve term here</h2>
-    <form method="POST">
-        {% csrf_token %}
+    <form method="POST"> {% csrf_token %}
     {{ form.as_p }}
     <input type='submit' value='Search'>
+
     </form>
     <br>
     Available class: <br>
-    {% for class in available_class %}
-            {{ class }} <br>
+    <form method="POST"> {% csrf_token %}
+    <input type="hidden" value="{{ form.data }}" name="additional_data">
+    {% for class_ in available_class %}
+        {{ class_ }}
+        <label for="class_to_book">{{ class_ }}
+        <input type="submit" name="class_to_book" value={{ class_ }}></label>
+        <br>
     {% endfor %}
-
+     </form>
 {% endblock %}

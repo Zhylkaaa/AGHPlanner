@@ -8,12 +8,16 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.models import Group
 from django.urls import reverse
 
-from .models import ClassroomReservation, ClassName
-from .forms import OccupiedSlotsForm, ReservationForm
+from .models import ClassroomReservation, ClassName, ClassTypes
+from .forms import OccupiedSlotsForm, ReservationForm, SpecificClassReservationFrom
 import pandas as pd
 
 
 # Create your views here.
+from .profile_functions import get_my_reservations, get_my_waiting_reservations, delete_waiting_reservation
+from .reservation_functions import get_available_classes, create_reservation_attempt
+
+
 def home(request):
     available_semesters = list(ClassroomReservation.objects.values_list('academic_year', 'semester').distinct())
     available_semesters.sort(key=lambda x: x[0]+x[1], reverse=True)
@@ -30,36 +34,32 @@ def home(request):
 
 @login_required
 def profile_view(request):
-    return render(request, "registration/profile.html", {})
-
-
-def get_unavailable_classes(form_request: dict):
-    form_request.pop('csrfmiddlewaretoken')
-    print(form_request)
-    form_request = {key: val for key, val in form_request.items() if val}
-    start_of_booking = form_request.pop('start_of_booking')
-    end_of_booking = form_request.pop('end_of_booking')
-    print(ClassroomReservation.objects.filter(**form_request))
-    cos = ClassroomReservation.objects.filter(**form_request, time_start__qt=start_of_booking, time_end__lt=end_of_booking)
-    cos = cos.values_list('class_name', flat=True).distinct()
-    return cos
-
-
-def get_available_classes(form_request: dict):
-    # get_unavailable_classes(form_request)
-    return ClassName.objects.exclude(id__in=list(get_unavailable_classes(form_request)))
+    data_base_respond = None
+    print(request.POST)
+    if request.POST:
+        if 'reservation' in request.POST:
+            data_base_respond = get_my_reservations(request.user)
+            # print(data_base_respond)
+        elif 'waiting' in request.POST:
+            data_base_respond = get_my_waiting_reservations(request.user)
+        elif 'to_delete' in request.POST:
+            delete_waiting_reservation(request.POST['to_delete'])
+    return render(request, "registration/profile.html", {'content': data_base_respond})
 
 
 @login_required
 def reservation(request):
-    available_classes = ()
-    form = ReservationForm(request.POST or None)
-    if form.is_valid():
-        class_name = request.POST['class_name']
-        form = ReservationForm()
-        available_classes = get_available_classes(request.POST.dict())
-
-    context = {'form': form, 'available_class': available_classes}
+    if request.POST and 'additional_data' in request.POST:
+        create_reservation_attempt(request.POST.dict(), request.user)
+        return render(request, "ReservationService/reservation.html", {'form': ReservationForm()})
+    else:
+        available_classes = ()
+        form = ReservationForm(request.POST or None)
+        if form.is_valid():
+            form2 = SpecificClassReservationFrom()
+            available_classes = get_available_classes(request.POST.dict())
+            form2.fields['class_name'].choices = [(obj.class_name, obj) for obj in available_classes]
+        context = {'form': form, 'available_class': available_classes}
     return render(request, "ReservationService/reservation.html", context)
 
 
