@@ -4,6 +4,7 @@ from ReservationService.models import ClassroomReservation, ClassTypes, ClassNam
 import datetime as dt
 
 
+
 class OccupiedSlotsForm(forms.Form):
     class_name = forms.CharField(max_length=10)
 
@@ -41,6 +42,7 @@ class ReservationForm(forms.ModelForm):
     class_type = forms.ChoiceField(choices=([(None, '--------')] + ClassTypes.choices)
                                    , initial={None, '--------'})
 
+
     class Meta:
         model = ClassroomReservation
         fields = ('class_name', )
@@ -57,3 +59,4 @@ class ReservationForm(forms.ModelForm):
         end = cleaned_data.get('end_of_booking')
         if begin > end:
             raise forms.ValidationError('Start time is after end time')
+

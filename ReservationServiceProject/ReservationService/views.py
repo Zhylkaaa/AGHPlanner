@@ -153,6 +153,7 @@ def upload_csv(request):
             for date in reservations:
                 ReservationDate.objects.get_or_create(reservation=reservation_object, date=date)
 
+
     redirect_year = redirect_year.replace('/', '_')
 
     return HttpResponseRedirect(reverse('ReservationService:calendar_view', args=(redirect_year, redirect_semester, )))
