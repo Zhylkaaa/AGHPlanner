@@ -11,12 +11,12 @@ Hi {{ user.get_username }}
         <input type='submit' name='reservation' value='Reservations'>
     </form>
     {% if content %}
-
         {% for row in content %}
             <form method="POST"> {% csrf_token %}
             {{ row.class_name.class_name }} {{ row.time_start }}
             {{ row.time_end }}
             <input type="hidden" name="to_delete" value="{{ row.id }}">
+                <input type="hidden" name="type" value="{{ type }}">
             <input type="submit" value="delete">
             <br>
             </form>

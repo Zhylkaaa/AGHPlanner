@@ -11,11 +11,11 @@
     <br>
     Available class: <br>
     <form method="POST"> {% csrf_token %}
-    <input type="hidden" value="{{ form.data }}" name="additional_data">
     {% for class_ in available_class %}
-        {{ class_ }}
+        <input type="hidden" value="{{ form.data }}" name="additional_data">
+        <input type="hidden" value="{{ class_.class_name }}" name="class">
         <label for="class_to_book">{{ class_ }}
-        <input type="submit" name="class_to_book" value={{ class_ }}></label>
+        <input type="submit" name="class_to_book" ></label>
         <br>
     {% endfor %}
      </form>

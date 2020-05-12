@@ -38,14 +38,14 @@ def get_available_classes(form_request: dict):
 
 def create_reservation_attempt(form_request: dict, user):
     form_request.pop('csrfmiddlewaretoken')
-    # print(form_request)
+    print(form_request['class'])
     additional_dictionary = ast.literal_eval(form_request['additional_data'][12:-1])
     # print("class:", form_request['class_to_book'])
     # print("time_start:", additional_dictionary['start_of_booking'][0])
     # print("time_end:", additional_dictionary['end_of_booking'][0])
     # print("reserved_by:", user)
     new_reservation_attempt = ClassroomReservationAttempts(
-        class_name=ClassName.objects.get(class_name=form_request['class_to_book']),
+        class_name=ClassName.objects.get(class_name=form_request['class']),
         time_start=additional_dictionary['start_of_booking'][0],
         time_end=additional_dictionary['end_of_booking'][0],
         reserved_by=user,

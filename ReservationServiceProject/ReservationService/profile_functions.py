@@ -11,3 +11,7 @@ def get_my_waiting_reservations(user):
 
 def delete_waiting_reservation(record_id):
     ClassroomReservationAttempts.objects.filter(id=record_id).delete()
+
+
+def delete_reservation(record_id):
+    ClassroomReservation.objects.filter(id=record_id).delete()
