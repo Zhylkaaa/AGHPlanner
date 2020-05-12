@@ -1,3 +1,4 @@
+from ast import literal_eval
 from datetime import datetime
 from datetime import timedelta
 
@@ -8,12 +9,17 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.models import Group
 from django.urls import reverse
 
-from .models import ClassroomReservation, ClassName
-from .forms import OccupiedSlotsForm, ReservationForm
+from .models import ClassroomReservation, ClassName, ClassTypes, ReservationDate
+from .forms import OccupiedSlotsForm, ReservationForm, SpecificClassReservationFrom
 import pandas as pd
 
 
 # Create your views here.
+from .profile_functions import get_my_reservations, get_my_waiting_reservations, delete_waiting_reservation, \
+    delete_reservation
+from .reservation_functions import get_available_classes, create_reservation_attempt
+
+
 def home(request):
     available_semesters = list(ClassroomReservation.objects.values_list('academic_year', 'semester').distinct())
     available_semesters.sort(key=lambda x: x[0]+x[1], reverse=True)
@@ -30,36 +36,42 @@ def home(request):
 
 @login_required
 def profile_view(request):
-    return render(request, "registration/profile.html", {})
-
-
-def get_unavailable_classes(form_request: dict):
-    form_request.pop('csrfmiddlewaretoken')
-    print(form_request)
-    form_request = {key: val for key, val in form_request.items() if val}
-    start_of_booking = form_request.pop('start_of_booking')
-    end_of_booking = form_request.pop('end_of_booking')
-    print(ClassroomReservation.objects.filter(**form_request))
-    cos = ClassroomReservation.objects.filter(**form_request, time_start__qt=start_of_booking, time_end__lt=end_of_booking)
-    cos = cos.values_list('class_name', flat=True).distinct()
-    return cos
-
-
-def get_available_classes(form_request: dict):
-    # get_unavailable_classes(form_request)
-    return ClassName.objects.exclude(id__in=list(get_unavailable_classes(form_request)))
+    data_base_respond = None
+    request_type = None
+    print(request.POST)
+    if request.POST:
+        if 'reservation' in request.POST:
+            request_type = 'reservation'
+            data_base_respond = get_my_reservations(request.user)
+            # print(data_base_respond)
+        elif 'waiting' in request.POST:
+            request_type = 'waiting'
+            data_base_respond = get_my_waiting_reservations(request.user)
+        elif 'to_delete' in request.POST:
+            if request.POST['type'] == 'waiting':
+                delete_waiting_reservation(request.POST['to_delete'])
+                data_base_respond = get_my_waiting_reservations(request.user)
+                request_type = 'waiting'
+            else:
+                delete_reservation(request.POST['to_delete'])
+                data_base_respond = get_my_reservations(request.user)
+                request_type = 'reservation'
+    return render(request, "registration/profile.html", {'content': data_base_respond, 'type': request_type})
 
 
 @login_required
 def reservation(request):
-    available_classes = ()
-    form = ReservationForm(request.POST or None)
-    if form.is_valid():
-        class_name = request.POST['class_name']
-        form = ReservationForm()
-        available_classes = get_available_classes(request.POST.dict())
-
-    context = {'form': form, 'available_class': available_classes}
+    if request.POST and 'additional_data' in request.POST:
+        create_reservation_attempt(request.POST.dict(), request.user)
+        return render(request, "ReservationService/reservation.html", {'form': ReservationForm()})
+    else:
+        available_classes = ()
+        form = ReservationForm(request.POST or None)
+        if form.is_valid():
+            form2 = SpecificClassReservationFrom()
+            available_classes = get_available_classes(request.POST.dict())
+            form2.fields['class_name'].choices = [(obj.class_name, obj) for obj in available_classes]
+        context = {'form': form, 'available_class': available_classes}
     return render(request, "ReservationService/reservation.html", context)
 
 
@@ -86,8 +98,8 @@ def booked_slots(request):
 
 def _validate_and_choose_columns(classes_df):
     # dangerous method: ClassroomReservation._meta.get_fields()
-    required_columns = ['class_name', 'reserved_from', 'reserved_until', 'time_start',
-                        'is_AB', 'academic_year', 'semester']
+    required_columns = ['class_name', 'time_start', 'time_end',
+                        'is_AB', 'academic_year', 'semester', 'reservations']
 
     for col in required_columns:
         if col not in classes_df:
@@ -113,7 +125,7 @@ def upload_csv(request):
         context['error_message'] = 'file should have .csv extension'
         return render(request, template, context)
 
-    classes_df = pd.read_csv(csv_file.name, index_col=0)
+    classes_df = pd.read_csv(csv_file.name, index_col=0, converters={'reservations': literal_eval})
     is_valid, use_time_end = _validate_and_choose_columns(classes_df)
 
     if not is_valid:
@@ -126,13 +138,20 @@ def upload_csv(request):
 
     for row in classes_df.itertuples(index=False):
         data = dict(zip(columns, row))
-        if not use_time_end:
-            data['time_end'] = str((datetime.strptime(data['time_start'], '%H:%M:%S') + timedelta(hours=1, minutes=30)).time())
+        # if not use_time_end:
+        #     data['time_end'] = str((datetime.strptime(data['time_start'], '%H:%M:%S') + timedelta(hours=1, minutes=30)).time())
 
+        # print(data)
+        # print(data['reservations'][1])
+        reservations = data.pop('reservations')
         redirect_year = data['academic_year']
         redirect_semester = data['semester']
         data['class_name'] = ClassName.objects.get(class_name=data['class_name'])
-        ClassroomReservation.objects.get_or_create(**data)
+        reservation_object, created = ClassroomReservation.objects.get_or_create(**data)
+        if created:
+            for date in reservations:
+                ReservationDate.objects.get_or_create(reservation=reservation_object, date=date)
+
 
     redirect_year = redirect_year.replace('/', '_')
 
