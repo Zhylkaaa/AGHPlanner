@@ -61,7 +61,6 @@ def profile_view(request):
 
 @login_required
 def reservation(request):
-    # print(request.POST)
     if request.POST and 'additional_data' in request.POST:
         create_reservation_attempt(request.POST.dict(), request.user)
         return render(request, "ReservationService/reservation.html", {'form': ReservationForm()})
