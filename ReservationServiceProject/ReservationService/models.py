@@ -73,6 +73,9 @@ class ReservationDate(models.Model):
     reservation = models.ForeignKey(ClassroomReservation, on_delete=models.CASCADE)
     date = models.DateField('Reservation date')
 
+    def __str__(self):
+        return self.date.__str__()
+
 
 class ClassroomReservationAttempts(models.Model):
     class_name = models.ForeignKey(ClassName, on_delete=models.CASCADE)

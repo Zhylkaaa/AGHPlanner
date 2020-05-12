@@ -1,6 +1,6 @@
 import ast
 
-from ReservationService.models import ClassName, ClassroomReservation, ClassroomReservationAttempts
+from ReservationService.models import ClassName, ClassroomReservation, ClassroomReservationAttempts, ReservationDate
 
 
 def get_classes_fitting(class_size=None, class_type=None):
@@ -16,10 +16,15 @@ def get_unavailable_classes(form_request: dict):
     form_request.pop('csrfmiddlewaretoken')
     form_request = {key: val for key, val in form_request.items() if val}
     date_of_class = form_request.pop('date_of_class')
+
+    occupied_reservations = ReservationDate.objects.filter(date=date_of_class).values_list('reservation', flat=True)
+    # print(ClassroomReservation.objects.filter(id__in=occupied_reservations))
     start_of_booking = form_request.pop('start_of_booking')
     end_of_booking = form_request.pop('end_of_booking')
-    cos = ClassroomReservation.objects.filter(**form_request, time_start__gt=start_of_booking,
-                                              time_end__lt=end_of_booking, )
+    print(form_request)
+    cos = ClassroomReservation.objects.filter(id__in=occupied_reservations)\
+        .filter(**form_request, time_start__gte=start_of_booking, time_end__lte=end_of_booking)
+    print(cos)
     cos = cos.values_list('class_name', flat=True).distinct()
     return cos
 
@@ -38,7 +43,6 @@ def get_available_classes(form_request: dict):
 
 def create_reservation_attempt(form_request: dict, user):
     form_request.pop('csrfmiddlewaretoken')
-    print(form_request['class'])
     additional_dictionary = ast.literal_eval(form_request['additional_data'][12:-1])
     # print("class:", form_request['class_to_book'])
     # print("time_start:", additional_dictionary['start_of_booking'][0])
