@@ -1,0 +1,14 @@
+{% extends 'ReservationService/base.html' %}
+
+{% block title %} Reservation Accept {% endblock %}
+{% block content %}
+    Reservation attempts:
+    {% for attempt in attempts %}
+        <form method="POST"> {% csrf_token %}
+        {{ attempt }} <input type="submit" value="accept" name="accept_button">
+            <input type="hidden" value="{{ attempt.id }}" name="attempt">
+            <br>
+        </form>
+    {% endfor %}
+
+{% endblock %}

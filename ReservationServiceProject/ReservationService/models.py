@@ -24,13 +24,11 @@ class ClassName(models.Model):
         return self.class_name.__str__() + " seats: " + self.class_size.__str__()
 
 
-
 class ClassroomReservation(models.Model):
     # class_name = models.CharField(max_length=10)
     class_name = models.ForeignKey(ClassName, on_delete=models.CASCADE)
     # reserved_from = models.DateField('Reservation starts')
     # reserved_until = models.DateField('Reservation ends')
-
 
     time_start = models.TimeField('time class start (for now assuming that class duration is 1.5h)',
                                   auto_now=False,
@@ -68,6 +66,7 @@ class ClassroomReservation(models.Model):
                 name="%(app_label)s_%(class)s_semester_valid",
             )
         ]
+
 
 class ReservationDate(models.Model):
     reservation = models.ForeignKey(ClassroomReservation, on_delete=models.CASCADE)

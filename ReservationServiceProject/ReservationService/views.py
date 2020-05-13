@@ -9,7 +9,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.models import Group
 from django.urls import reverse
 
-from .models import ClassroomReservation, ClassName, ClassTypes, ReservationDate
+from .models import ClassroomReservation, ClassName, ClassTypes, ReservationDate, ClassroomReservationAttempts
 from .forms import OccupiedSlotsForm, ReservationForm, SpecificClassReservationFrom
 import pandas as pd
 
@@ -18,6 +18,7 @@ import pandas as pd
 from .profile_functions import get_my_reservations, get_my_waiting_reservations, delete_waiting_reservation, \
     delete_reservation
 from .reservation_functions import get_available_classes, create_reservation_attempt
+from .accept_functions import get_reservations_attempts, get_attempt_object, add_attempt_to_reservation
 
 
 def home(request):
@@ -74,6 +75,15 @@ def reservation(request):
             form2.fields['class_name'].choices = [(obj.class_name, obj) for obj in available_classes]
         context = {'form': form, 'available_class': available_classes}
     return render(request, "ReservationService/reservation.html", context)
+
+
+@staff_member_required
+def accept_reservations_view(request):
+    if request.POST:
+        add_attempt_to_reservation(request.POST['attempt'])
+    attempts = get_reservations_attempts()
+    context = {'attempts': attempts}
+    return render(request, "ReservationService/accept_reservations.html", context)
 
 
 def booked_slots(request):
