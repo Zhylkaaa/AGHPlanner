@@ -1,9 +1,11 @@
-{% extends 'ReservationService/base.html' %}
+{% extends 'ReservationService/cal_base.html' %}
 
 {% block title %}Calendar{% endblock %}
 
 {% block content %}
-    {% for reservation in reservation_list %}
-        <p>{{ reservation }}</p>
-    {% endfor %}
+<div class="clearfix">
+	<a class="btn btn-info left" href="{% url 'ReservationService:calendar' %}?{{ prev_month }}"> Previous Month </a>
+	<a class="btn btn-info right" href="{% url 'ReservationService:calendar' %}?{{ next_month }}"> Next Month </a>
+</div>
+    {{ calendar }}
 {% endblock %}

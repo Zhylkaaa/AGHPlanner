@@ -1,5 +1,8 @@
+import calendar
+
+import pandas as pd
 from ast import literal_eval
-from datetime import datetime
+from datetime import datetime, date
 from datetime import timedelta
 
 from django.contrib.admin.views.decorators import staff_member_required
@@ -8,11 +11,12 @@ from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.models import Group
 from django.urls import reverse
+from django.views import generic
 
-from .models import ClassroomReservation, ClassName, ClassTypes, ReservationDate
+from .models import *
 from .forms import OccupiedSlotsForm, ReservationForm, SpecificClassReservationFrom
-import pandas as pd
-
+from .utils import Calendar
+from django.utils.safestring import mark_safe
 
 # Create your views here.
 from .profile_functions import get_my_reservations, get_my_waiting_reservations, delete_waiting_reservation, \
@@ -22,7 +26,7 @@ from .reservation_functions import get_available_classes, create_reservation_att
 
 def home(request):
     available_semesters = list(ClassroomReservation.objects.values_list('academic_year', 'semester').distinct())
-    available_semesters.sort(key=lambda x: x[0]+x[1], reverse=True)
+    available_semesters.sort(key=lambda x: x[0] + x[1], reverse=True)
     tmp = []
 
     for year, semester in available_semesters:
@@ -152,18 +156,50 @@ def upload_csv(request):
             for date in reservations:
                 ReservationDate.objects.get_or_create(reservation=reservation_object, date=date)
 
-
     redirect_year = redirect_year.replace('/', '_')
 
-    return HttpResponseRedirect(reverse('ReservationService:calendar_view', args=(redirect_year, redirect_semester, )))
+    return HttpResponseRedirect(reverse('ReservationService:calendar_view', args=(redirect_year, redirect_semester,)))
 
 
-def calendar(request, academic_year, semester):
-    template = 'ReservationService/calendar_view.html'
+class CalendarView(generic.ListView):
+    model = ReservationDate
+    template_name = 'ReservationService/calendar_view.html'
 
-    academic_year = academic_year.replace('_', '/')
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
 
-    print(academic_year, semester)
-    reservation_list_for_semester = ClassroomReservation.objects.filter(academic_year=academic_year, semester=semester)
+        # use today's date for the calendar
+        d = get_date(self.request.GET.get('day', None))
+        d = get_date(self.request.GET.get('month', None))
+        # Instantiate our calendar class with today's year and date
+        cal = Calendar(d.year, d.month)
 
-    return render(request, template, {'reservation_list': reservation_list_for_semester})
+        # Call the formatmonth method, which returns our calendar as a table
+        html_cal = cal.formatmonth(withyear=True)
+        context['calendar'] = mark_safe(html_cal)
+
+        context['prev_month'] = prev_month(d)
+        context['next_month'] = next_month(d)
+        return context
+
+
+def prev_month(d):
+    first = d.replace(day=1)
+    prev_month = first - timedelta(days=1)
+    month = 'month=' + str(prev_month.year) + '-' + str(prev_month.month)
+    return month
+
+
+def next_month(d):
+    days_in_month = calendar.monthrange(d.year, d.month)[1]
+    last = d.replace(day=days_in_month)
+    next_month = last + timedelta(days=1)
+    month = 'month=' + str(next_month.year) + '-' + str(next_month.month)
+    return month
+
+
+def get_date(req_day):
+    if req_day:
+        year, month = (int(x) for x in req_day.split('-'))
+        return date(year, month, day=1)
+    return datetime.today()

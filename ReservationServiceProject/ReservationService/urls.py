@@ -1,3 +1,4 @@
+from django.conf.urls import url
 from django.urls import path, re_path, include
 from . import views
 from .models import SemesterOptions
@@ -14,5 +15,7 @@ urlpatterns = [
     path('profile/', views.profile_view, name='profile'),
     path('accounts/', include('django.contrib.auth.urls')),
     path('reservation/', views.reservation, name='reservation'),
-    re_path(f'calendar/{re_academic_year}/{re_semesters}/', views.calendar, name='calendar_view'),
+
+    re_path(f'calendar/{re_academic_year}/{re_semesters}/', views.CalendarView.as_view(), name='calendar_view'),
+    url(r'^calendar/$', views.CalendarView.as_view(), name='calendar'),
 ]
