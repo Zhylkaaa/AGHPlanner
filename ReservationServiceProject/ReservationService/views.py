@@ -158,6 +158,42 @@ def upload_csv(request):
     return HttpResponseRedirect(reverse('ReservationService:calendar_view', args=(redirect_year, redirect_semester, )))
 
 
+@staff_member_required
+def upload_classrooms(request):
+    template = 'ReservationService/upload_csv.html'
+
+    context = {
+        'message': 'Upload CSV in following format: classroom_name,class_type,class_size',  # TODO: extract string constants to separate file
+    }
+
+    if request.method == 'GET':
+        return render(request, template, context)
+
+    csv_file = request.FILES['file']
+
+    if not csv_file.name.endswith('.csv'):
+        context['error_message'] = 'file should have .csv extension'
+        return render(request, template, context)
+
+    classrooms_pd = pd.read_csv(csv_file.name, index_col=0)
+    columns = classrooms_pd.columns
+
+    for row in classrooms_pd.itertuples(index=False):
+        data = dict(zip(columns, row))
+
+        class_type = None
+        if 'l' in data['class_type']:
+            class_type = ClassTypes.lecture
+        elif 'c' in data['class_type']:
+            class_type = ClassTypes.computers
+        elif 'b' in data['class_type']:
+            class_type = ClassTypes.board
+
+        ClassName.objects.get_or_create(class_name=data['class_name'], class_size=data['class_size'], class_type=class_type)
+
+    return HttpResponseRedirect(reverse('ReservationService:reservation'))
+
+
 def calendar(request, academic_year, semester):
     template = 'ReservationService/calendar_view.html'
 
