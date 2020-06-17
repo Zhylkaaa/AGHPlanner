@@ -1,8 +1,8 @@
 from django import forms
 
 from ReservationService.models import ClassroomReservation, ClassTypes, ClassName
+from django.contrib.auth.models import User
 import datetime as dt
-
 
 
 class OccupiedSlotsForm(forms.Form):
@@ -42,10 +42,9 @@ class ReservationForm(forms.ModelForm):
     class_type = forms.ChoiceField(choices=([(None, '--------')] + ClassTypes.choices)
                                    , initial={None, '--------'})
 
-
     class Meta:
         model = ClassroomReservation
-        fields = ('class_name', )
+        fields = ('class_name',)
 
     def __init__(self, *args, **kwargs):
         super(ReservationForm, self).__init__(*args, **kwargs)
@@ -60,3 +59,16 @@ class ReservationForm(forms.ModelForm):
         if begin > end:
             raise forms.ValidationError('Start time is after end time')
 
+
+class ReservationFilterForm(forms.Form):
+    begin_date = forms.DateField(widget=DataInput)
+    end_date = forms.DateField(widget=DataInput)
+    reserved_by = forms.ModelChoiceField(
+        queryset=User.objects.all()
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(ReservationFilterForm, self).__init__(*args, **kwargs)
+        self.fields['begin_date'].required = False
+        self.fields['end_date'].required = False
+        self.fields['reserved_by'].required = False

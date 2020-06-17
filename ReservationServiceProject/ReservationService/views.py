@@ -1,16 +1,13 @@
 from ast import literal_eval
-from datetime import datetime
-from datetime import timedelta
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseRedirect
-from django.contrib.auth.models import Group
+from django.http import HttpResponseRedirect
 from django.urls import reverse
 
-from .models import ClassroomReservation, ClassName, ClassTypes, ReservationDate
-from .forms import OccupiedSlotsForm, ReservationForm, SpecificClassReservationFrom
+from .models import ClassroomReservation, ClassName, ReservationDate
+from .forms import OccupiedSlotsForm, ReservationForm, SpecificClassReservationFrom, ReservationFilterForm
 import pandas as pd
 
 
@@ -18,6 +15,7 @@ import pandas as pd
 from .profile_functions import get_my_reservations, get_my_waiting_reservations, delete_waiting_reservation, \
     delete_reservation
 from .reservation_functions import get_available_classes, create_reservation_attempt
+from .accept_functions import process_request
 
 
 def home(request):
@@ -75,6 +73,25 @@ def reservation(request):
     return render(request, "ReservationService/reservation.html", context)
 
 
+@staff_member_required
+def accept_reservations_view(request):
+    reserved = None
+    attempts = None
+    overlapping = None
+    if request.method == 'POST':
+        reservation_filter_form = ReservationFilterForm(request.POST)
+        attempts, overlapping = process_request(request)
+    else:
+        reservation_filter_form = ReservationFilterForm()
+    context = {
+        'attempts': attempts,
+        'overlapping': overlapping,
+        'error_already_reserved': reserved,
+        'filter_form': reservation_filter_form
+    }
+    return render(request, "ReservationService/accept_reservations.html", context)
+
+
 def booked_slots(request):
     form = OccupiedSlotsForm(request.POST or None)
     class_name = None
@@ -92,12 +109,10 @@ def booked_slots(request):
         'form': form,
         'available_class': available_class
     }
-    # return HttpResponse(result)
     return render(request, "ReservationService/booked_slots.html", context)
 
 
 def _validate_and_choose_columns(classes_df):
-    # dangerous method: ClassroomReservation._meta.get_fields()
     required_columns = ['class_name', 'time_start', 'time_end',
                         'is_AB', 'academic_year', 'semester', 'reservations']
 
@@ -138,11 +153,6 @@ def upload_csv(request):
 
     for row in classes_df.itertuples(index=False):
         data = dict(zip(columns, row))
-        # if not use_time_end:
-        #     data['time_end'] = str((datetime.strptime(data['time_start'], '%H:%M:%S') + timedelta(hours=1, minutes=30)).time())
-
-        # print(data)
-        # print(data['reservations'][1])
         reservations = data.pop('reservations')
         redirect_year = data['academic_year']
         redirect_semester = data['semester']
@@ -151,7 +161,6 @@ def upload_csv(request):
         if created:
             for date in reservations:
                 ReservationDate.objects.get_or_create(reservation=reservation_object, date=date)
-
 
     redirect_year = redirect_year.replace('/', '_')
 

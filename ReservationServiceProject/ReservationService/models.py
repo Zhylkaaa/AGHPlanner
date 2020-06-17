@@ -24,13 +24,11 @@ class ClassName(models.Model):
         return self.class_name.__str__() + " seats: " + self.class_size.__str__()
 
 
-
 class ClassroomReservation(models.Model):
     # class_name = models.CharField(max_length=10)
     class_name = models.ForeignKey(ClassName, on_delete=models.CASCADE)
     # reserved_from = models.DateField('Reservation starts')
     # reserved_until = models.DateField('Reservation ends')
-
 
     time_start = models.TimeField('time class start (for now assuming that class duration is 1.5h)',
                                   auto_now=False,
@@ -52,7 +50,8 @@ class ClassroomReservation(models.Model):
     semester = models.CharField(max_length=6, choices=SemesterOptions.choices)
 
     def __str__(self):
-        return f'class {self.class_name} is occupied at {self.time_start.__str__()} - {self.time_end.__str__()}'
+        return f'class {self.class_name} is occupied at {self.time_start.__str__()} - {self.time_end.__str__()}' \
+               f' by {self.reserved_by}'
         # from {self.reserved_from.__str__()} until {self.reserved_until.__str__()}'
 
     def save(self, *args, **kwargs):
@@ -69,6 +68,7 @@ class ClassroomReservation(models.Model):
             )
         ]
 
+
 class ReservationDate(models.Model):
     reservation = models.ForeignKey(ClassroomReservation, on_delete=models.CASCADE)
     date = models.DateField('Reservation date')
@@ -79,7 +79,7 @@ class ReservationDate(models.Model):
 
 class ClassroomReservationAttempts(models.Model):
     class_name = models.ForeignKey(ClassName, on_delete=models.CASCADE)
-    reservation_date = models.DateField('Reservation date', auto_now=True)
+    reservation_date = models.DateField('Reservation date')
     time_start = models.TimeField('time class start (for now assuming that class duration is 1.5h)',
                                   auto_now=False,
                                   auto_now_add=False)
