@@ -4,10 +4,28 @@
   <meta charset="utf-8">
   <title>{% block title %}Reservation Service{% endblock %}</title>
 </head>
+<style>
+.footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background-color: grey;
+  color: white;
+  text-align: center;
+}
+</style>
 <body>
   <main>
     {% block content %}
     {% endblock %}
   </main>
+{% block footer %}
+<div class="footer">
+  <p>
+      <a href="{% url 'ReservationService:home' %}">HOME</a>
+  </p>
+</div>
+{% endblock %}
 </body>
 </html>

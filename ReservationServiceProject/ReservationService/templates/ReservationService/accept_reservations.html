@@ -1,14 +1,98 @@
 {% extends 'ReservationService/base.html' %}
+<head>
+    <script src="sorttable.js"></script>
+    <title>Reservation Accept</title>
+</head>
 
 {% block title %} Reservation Accept {% endblock %}
 {% block content %}
-    Reservation attempts:
-    {% for attempt in attempts %}
-        <form method="POST"> {% csrf_token %}
-        {{ attempt }} <input type="submit" value="accept" name="accept_button">
-            <input type="hidden" value="{{ attempt.id }}" name="attempt">
-            <br>
-        </form>
-    {% endfor %}
+    <div class="container" style="display: flex; ">
+        <div style="width: 10%; background: grey;
+            margin: 5px; height: 100%; padding: 15px">
+            <form method="POST"> {% csrf_token %}
+            {{ filter_form.as_p }}
+                <input type="submit" value="Search" name="search">
+            </form>
+        </div>
+        <div style="width: 45%;">
+            {% if error_already_reserved.0 %}
+                There is already reserved: {{ error_already_reserved.0 }}<br>
+                <form method="POST"> {% csrf_token %}
+                    <input type="hidden" value="{{ error_already_reserved }}" name="data">
+                    <input type="submit" value="OK" name="OK">
+                    <input type="submit" value="SWAP" name="SWAP">
+                    <input type="submit" value="REMOVE ATTEMPT" name="REMOVE">
+                </form>
+            {% endif %}
+            Reservation attempts:
+            <table class="sortable" style="width:90%" border=1 frame=void rules=rows>
+                <thead>
+                    <tr>
+                    <th>Class number</th>
+                    <th>Reservation date</th>
+                    <th>Start time</th>
+                    <th>End time</th>
+                    <th>Reserved by</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for attempt in attempts %}
+                    <form method="POST"> {% csrf_token %}
+                    <tr>
+                        <td>{{ attempt.class_name.class_name }}</td>
+                        <td>{{ attempt.reservation_date }}</td>
+                        <td>{{ attempt.time_start }}</td>
+                        <td>{{ attempt.time_end }}</td>
+                        <td>{{ attempt.reserved_by }}</td>
+                        <td><input type="submit" value="accept" name="accept_button"></td>
+                        <td> <input type="hidden" value="{{ attempt.id }}" name="attempt"></td>
+                    </tr>
+                    </form>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div>
+            Conflicts:
+            <table class="sortable" style="width:90%" border=1 frame=void rules=rows>
+                <thead>
+                    <tr>
+                    <th>Class number</th>
+                    <th>Reservation date</th>
+                    <th>Time and booker</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for key, attempts in overlapping.items %}
+                <form method="POST"> {% csrf_token %}
+                    <tr>
+                        <td>{{ key.class_name.class_name }}</td>
+                        <td>{{ key.reservation_date }}</td>
+                        <td>
+                            <label for="collisions"></label>
+                            <select name="collisions" id="collisions">
+                            {% for attempt in attempts %}
+                                <option value="{{ attempt.reserved_by }};{{ attempt.time_start }};{{ attempt.time_end }}">
+                                    {{ attempt.reserved_by }} hours: {{ attempt.time_start }} - {{ attempt.time_end }}
+                                </option>
+                            {% endfor %}
+                            </select>
+                        </td>
+                        <td><input type="submit" value="accept" name="accept_button"></td>
+                        <td> <input type="hidden" value="{{ key.class_name.class_name }};{{ key.reservation_date }}" name="collision_button"></td>
+                    </tr>
+                </form>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+{#    #}
+{#    #}
+{#    #}
+{#    {% for attempt in attempts %}#}
+{#    {% endfor %}#}
 
 {% endblock %}
+

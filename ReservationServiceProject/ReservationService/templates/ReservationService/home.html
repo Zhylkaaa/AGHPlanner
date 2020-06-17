@@ -11,7 +11,7 @@
         <a href="{% url 'ReservationService:reservation' %}">Reservation </a>
         <br>
         <a href="{% url 'ReservationService:accept' %}">Accept reservation attempts</a>
-        <h2><a href="{% url 'ReservationService:logout' %}"> Logout </a>
+        <h2><a href="{% url 'ReservationService:logout' %}"> Logout </a> </h2>
     {% endif %}
     <br>
     <h1> Calendar</h1>
@@ -26,4 +26,7 @@
     {% if user.is_authenticated and user.is_staff%}
     <h1> <a href="{% url 'ReservationService:upload_csv' %}"> Upload Data </a> </h1>
     {% endif %}
+{% endblock %}
+
+{% block footer %}
 {% endblock %}
